@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Physics 355 — Continuity equation</title>
+<style>
+  :root {
+    --bg: #f7f4ef;
+    --ink: #1c1b19;
+    --muted: #5c574f;
+    --panel: #fffdf9;
+    --line: #d9d2c5;
+    --accent: #0b6e4f;
+    --teal: #0d7377;
+    --orange: #c45c26;
+    --blue: #2f5d8c;
+    --red: #a33b3b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    color: var(--ink);
+    background:
+      radial-gradient(ellipse at 10% 0%, #efe6d6 0%, transparent 45%),
+      radial-gradient(ellipse at 90% 10%, #e4efe9 0%, transparent 40%),
+      var(--bg);
+    line-height: 1.35;
+  }
+  header {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 1.25rem 1.25rem 0.5rem;
+  }
+  header h1 {
+    margin: 0 0 0.35rem;
+    font-size: 1.45rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+    max-width: 56rem;
+  }
+  .math {
+    font-family: "Times New Roman", Times, serif;
+    font-style: italic;
+  }
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0.75rem 1.25rem 2rem;
+    display: grid;
+    grid-template-columns: 1.45fr 1fr;
+    gap: 1rem;
+  }
+  @media (max-width: 920px) {
+    .wrap { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.85rem 0.9rem 0.95rem;
+    box-shadow: 0 1px 0 rgba(28,27,25,0.04);
+  }
+  .panel h2 {
+    margin: 0 0 0.55rem;
+    font-size: 0.98rem;
+    font-weight: 600;
+  }
+  .stack { display: flex; flex-direction: column; gap: 0.85rem; }
+  canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem 1rem;
+    align-items: end;
+  }
+  .controls .full { grid-column: 1 / -1; }
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  label strong { color: var(--ink); font-weight: 600; }
+  input[type="range"] { width: 100%; accent-color: var(--accent); }
+  .btnrow { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  button {
+    appearance: none;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    border-radius: 6px;
+    padding: 0.42rem 0.75rem;
+    font: inherit;
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  button:hover { filter: brightness(0.98); }
+  .readout {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem 0.75rem;
+    font-size: 0.86rem;
+  }
+  .readout div {
+    background: #f3efe7;
+    border-radius: 6px;
+    padding: 0.45rem 0.55rem;
+  }
+  .readout .full { grid-column: 1 / -1; }
+  .readout .label { color: var(--muted); font-size: 0.75rem; display: block; }
+  .readout .value { font-variant-numeric: tabular-nums; }
+  .readout .sum {
+    background: #e7f2eb;
+    border: 1px solid #b7d4c2;
+  }
+  .eqbox {
+    border-left: 3px solid var(--accent);
+    padding: 0.35rem 0 0.35rem 0.7rem;
+    margin: 0.35rem 0 0.6rem;
+    font-size: 0.9rem;
+  }
+  .ok { color: var(--accent); font-weight: 600; }
+  .notes {
+    font-size: 0.86rem;
+    color: var(--muted);
+  }
+  .notes ul { margin: 0.35rem 0 0; padding-left: 1.15rem; }
+  .notes li { margin: 0.25rem 0; }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.1rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 0.4rem;
+  }
+  .swatch {
+    display: inline-block;
+    width: 0.85rem;
+    height: 0.28rem;
+    border-radius: 2px;
+    vertical-align: middle;
+    margin-right: 0.3rem;
+  }
+  h3 {
+    margin: 0.75rem 0 0.4rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+  .lesson {
+    max-width: none;
+    width: 100%;
+    margin: 0.5rem 0 3.5rem;
+    padding: 0 1.5rem;
+    box-sizing: border-box;
+    font-size: 1.4rem;
+  }
+  .lesson h2 {
+    margin: 2.4rem 0 0.85rem;
+    font-size: 1.95rem;
+    font-weight: 600;
+  }
+  .lesson h3 {
+    margin: 1.6rem 0 0.55rem;
+    font-size: 1.55rem;
+  }
+  .lesson p, .lesson li {
+    font-size: 1.4rem;
+    line-height: 1.65;
+    color: var(--ink);
+  }
+  .lesson p { margin: 0.8rem 0; }
+  .lesson ul, .lesson ol { margin: 0.55rem 0 0.95rem; padding-left: 1.55rem; }
+  .lesson li { margin: 0.5rem 0; }
+  .lesson .panel {
+    margin: 1rem 0 1.25rem;
+  }
+  .lesson .math {
+    font-size: 1.06em;
+  }
+  .lesson .math sub,
+  .lesson .math sup,
+  .lesson sub,
+  .lesson sup {
+    font-size: 0.72em;
+    line-height: 0;
+  }
+  .lesson .num {
+    font-variant-numeric: tabular-nums;
+    font-family: "Times New Roman", Times, serif;
+    font-style: italic;
+    background: #f3efe7;
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+  }
+  .lesson .callout {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 1.05rem 1.25rem;
+    margin: 1.1rem 0;
+    font-size: 1.3rem;
+  }
+  .lesson .example {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.1rem 1.25rem;
+    margin: 1.1rem 0 1.35rem;
+  }
+  .lesson .example h4 {
+    margin: 0 0 0.55rem;
+    font-size: 1.35rem;
+  }
+  .lesson table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1.28rem;
+    margin: 0.8rem 0 1.2rem;
+  }
+  .lesson th, .lesson td {
+    border-top: 1px solid var(--line);
+    padding: 0.65rem 0.6rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  .lesson th { color: var(--muted); font-weight: 600; width: 32%; }
+  .fold-rule {
+    max-width: none;
+    width: 100%;
+    margin: 1.5rem 0 0.25rem;
+    padding: 0 1.5rem;
+    box-sizing: border-box;
+    color: var(--muted);
+    font-size: 1.15rem;
+  }
+  .fold-rule hr {
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 0.35rem 0 0.75rem;
+  }
+  .lesson-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: 1.25rem 1.5rem;
+    align-items: start;
+    margin: 0.75rem 0 1.25rem;
+  }
+  @media (max-width: 920px) {
+    .lesson-split { grid-template-columns: 1fr; }
+  }
+  .lesson-viz {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.85rem 0.95rem 1rem;
+    position: sticky;
+    top: 0.75rem;
+  }
+  .lesson-viz canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  .lesson-viz .legend {
+    font-size: 0.95rem;
+    margin-top: 0.55rem;
+  }
+  .lesson-viz .viz-caption {
+    margin: 0.55rem 0 0;
+    font-size: 1.05rem;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+  .lesson-viz .btnrow {
+    margin: 0 0 0.65rem;
+  }
+  .lesson-viz button.primary {
+    font-size: 1rem;
+    padding: 0.5rem 0.95rem;
+  }
+  .lesson-viz button {
+    font-size: 1rem;
+    padding: 0.5rem 0.85rem;
+  }
+  .lesson-split .example { margin-top: 0.85rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Why the continuity equation works</h1>
+  <p>
+    A free Gaussian wave packet (units <span class="math">ℏ = m = 1</span>).
+    Probability in a fixed window <span class="math">[a, b]</span> changes
+    <em>only</em> because probability flows through the endpoints —
+    that is the continuity equation:
+    <span class="math">∂ρ/∂t + ∂J/∂x = 0</span>.
+  </p>
+</header>
+
+<div class="wrap">
+  <div class="stack">
+    <section class="panel">
+      <h2>Density <span class="math">ρ(x,t) = |Ψ|²</span> and window <span class="math">[a,b]</span></h2>
+      <canvas id="rho" width="720" height="260" aria-label="Probability density with interval"></canvas>
+      <div class="legend">
+        <span><i class="swatch" style="background:#2f5d8c"></i><span class="math">ρ(x)</span></span>
+        <span><i class="swatch" style="background:#0b6e4f66"></i>window <span class="math">[a,b]</span></span>
+        <span><i class="swatch" style="background:#c45c26"></i>flux arrows at <span class="math">a</span>, <span class="math">b</span></span>
+        <span><i class="swatch" style="background:#6b4c9a"></i>probe <span class="math">x<sub>*</sub></span></span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Current <span class="math">J(x,t)</span></h2>
+      <canvas id="jplot" width="720" height="180" aria-label="Probability current"></canvas>
+    </section>
+
+    <section class="panel">
+      <h2>Local check: <span class="math">∂ρ/∂t</span> vs <span class="math">−∂J/∂x</span></h2>
+      <canvas id="local" width="720" height="180" aria-label="Local continuity residual"></canvas>
+      <div class="legend">
+        <span><i class="swatch" style="background:#2f5d8c"></i><span class="math">∂ρ/∂t</span></span>
+        <span><i class="swatch" style="background:#c45c26"></i><span class="math">−∂J/∂x</span></span>
+        <span>If continuity holds, the two curves coincide.</span>
+      </div>
+    </section>
+  </div>
+
+  <div class="stack">
+    <section class="panel">
+      <h2>What to watch</h2>
+      <div class="eqbox">
+        <div><span class="math">∂ρ/∂t + ∂J/∂x = 0</span></div>
+        <div style="margin-top:0.25rem;color:var(--muted);font-size:0.84rem;">
+          At every point (and after integrating over the window), the time rate of change of
+          density plus the spatial change of the current sums to zero.
+        </div>
+      </div>
+      <div class="notes">
+        <ul>
+          <li>In <strong>Balance for the window</strong>, read
+              <span class="math">∫<sub>a</sub><sup>b</sup> (∂ρ/∂t) dx</span> and
+              <span class="math">∫<sub>a</sub><sup>b</sup> (∂J/∂x) dx</span> — their sum is ~0.</li>
+          <li>Move the probe <span class="math">x<sub>*</sub></span> to check the same sum
+              pointwise: <span class="math">(∂ρ/∂t + ∂J/∂x)|<sub>x<sub>*</sub></sub> ≈ 0</span>.</li>
+          <li>Equivalently, <span class="math">dP/dt = J(a) − J(b)</span>
+              (net influx through the ends).</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Balance for the window</h2>
+      <div class="readout" id="readout">
+        <div><span class="label">t</span><span class="value" id="tVal">0</span></div>
+        <div><span class="label">P = ∫<sub>a</sub><sup>b</sup> ρ dx</span><span class="value" id="pVal">0</span></div>
+
+        <div class="full">
+          <span class="label">∫<sub>a</sub><sup>b</sup> (∂ρ/∂t) dx &nbsp;=&nbsp; dP/dt</span>
+          <span class="value" id="intDrhoVal">0</span>
+        </div>
+        <div class="full">
+          <span class="label">∫<sub>a</sub><sup>b</sup> (∂J/∂x) dx &nbsp;=&nbsp; J(b) − J(a)</span>
+          <span class="value" id="intDJVal">0</span>
+        </div>
+        <div class="full sum">
+          <span class="label">sum = ∫(∂ρ/∂t) dx + ∫(∂J/∂x) dx &nbsp; (should be 0)</span>
+          <span class="value" id="intSumVal">0</span>
+        </div>
+
+        <div><span class="label">J(a)</span><span class="value" id="jaVal">0</span></div>
+        <div><span class="label">J(b)</span><span class="value" id="jbVal">0</span></div>
+      </div>
+
+      <h3>Local balance at probe x<sub>*</sub></h3>
+      <div class="readout">
+        <div><span class="label">x<sub>*</sub></span><span class="value" id="xstarVal">0</span></div>
+        <div><span class="label">ρ(x<sub>*</sub>)</span><span class="value" id="rhoStarVal">0</span></div>
+        <div><span class="label">(∂ρ/∂t)|<sub>x*</sub></span><span class="value" id="drhoStarVal">0</span></div>
+        <div><span class="label">(∂J/∂x)|<sub>x*</sub></span><span class="value" id="djStarVal">0</span></div>
+        <div class="full sum">
+          <span class="label">(∂ρ/∂t + ∂J/∂x)|<sub>x*</sub> &nbsp; (should be 0)</span>
+          <span class="value" id="localSumVal">0</span>
+        </div>
+      </div>
+      <p class="notes" style="margin:0.55rem 0 0;" id="verdict"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Controls</h2>
+      <div class="btnrow full" style="margin-bottom:0.75rem;">
+        <button type="button" class="primary" id="playBtn">Pause</button>
+        <button type="button" id="resetBtn">Reset</button>
+      </div>
+      <div class="controls">
+        <label class="full">
+          <strong>Group momentum k₀</strong>
+          <input type="range" id="k0" min="0.5" max="4" step="0.05" value="2" />
+          <span id="k0Lab">2.00</span>
+        </label>
+        <label>
+          <strong>Width σ</strong>
+          <input type="range" id="sig" min="0.4" max="1.6" step="0.05" value="0.8" />
+          <span id="sigLab">0.80</span>
+        </label>
+        <label>
+          <strong>Speed</strong>
+          <input type="range" id="speed" min="0.25" max="2.5" step="0.05" value="0.25" />
+          <span id="speedLab">0.25×</span>
+        </label>
+        <label>
+          <strong>Window left a</strong>
+          <input type="range" id="aWin" min="-2" max="1" step="0.05" value="-1" />
+          <span id="aLab">−1.00</span>
+        </label>
+        <label>
+          <strong>Window right b</strong>
+          <input type="range" id="bWin" min="0" max="3" step="0.05" value="1" />
+          <span id="bLab">1.00</span>
+        </label>
+        <label class="full">
+          <strong>Probe x<sub>*</sub> (local sum)</strong>
+          <input type="range" id="xStar" min="-4" max="6" step="0.05" value="0" />
+          <span id="xStarLab">0.00</span>
+        </label>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="fold-rule">
+  <hr />
+  Guide below — scroll for a full explanation of every quantity on this page.
+  Numbers in shaded boxes update live from the simulation above.
+</div>
+
+<article class="lesson">
+  <h2>A full guide to this simulation</h2>
+  <p>
+    This page exists for one idea: <strong>probability is not created or destroyed</strong>.
+    If more probability shows up in a region of space, it must have flowed in from next door.
+    The continuity equation is that bookkeeping rule written in calculus.
+  </p>
+
+  <div class="callout">
+    <strong>Live values from the sim right now:</strong>
+    <span class="math">t =</span> <span class="num" id="ex-t">—</span>,
+    window <span class="math">[a,b] = [</span><span class="num" id="ex-a">—</span><span class="math">,</span>
+    <span class="num" id="ex-b">—</span><span class="math">]</span>,
+    probe <span class="math">x<sub>*</sub> =</span> <span class="num" id="ex-xs">—</span>.
+    Pause the animation when you want to study a fixed moment.
+  </div>
+
+  <h2>1. What the wave packet is</h2>
+  <p>
+    The simulation shows a free Gaussian wave packet: a bump of probability that travels
+    to the right (and slowly spreads). Units are chosen so
+    <span class="math">ℏ = 1</span> and <span class="math">m = 1</span>. That is only a
+    choice of units — it does not change the meaning of the continuity equation.
+  </p>
+  <p>
+    The complex wave function <span class="math">Ψ(x,t)</span> is the object that obeys
+    Schrödinger’s equation. You never need its phase to understand continuity. What matters
+    for probability accounting is the density
+  </p>
+  <p style="text-align:center;">
+    <span class="math">ρ(x,t) = |Ψ(x,t)|²</span>.
+  </p>
+  <p>
+    Interpret <span class="math">ρ(x,t) dx</span> as the probability of finding the particle
+    between <span class="math">x</span> and <span class="math">x+dx</span> at time
+    <span class="math">t</span>. The top plot draws that density as a function of
+    <span class="math">x</span>.
+  </p>
+
+  <h2>2. The window <span class="math">[a,b]</span> and the total probability inside it</h2>
+  <div class="lesson-split">
+    <div class="lesson-copy">
+      <p>
+        The green band is a fixed interval of space. The number
+      </p>
+      <p style="text-align:center;">
+        <span class="math">P<sub>[a,b]</sub>(t) = ∫<sub>a</sub><sup>b</sup> ρ(x,t) dx</span>
+      </p>
+      <p>
+        is the probability that a position measurement at time <span class="math">t</span>
+        finds the particle somewhere inside that interval. In the readout this is simply called
+        <span class="math">P</span>.
+      </p>
+      <div class="example">
+        <h4>From the simulation now</h4>
+        <p>
+          <span class="math">P =</span> <span class="num" id="ex-P">—</span>.
+          If this is near <span class="math">0</span>, the packet is mostly outside the window.
+          If it is near <span class="math">1</span>, almost all of the probability is currently
+          between <span class="math">a</span> and <span class="math">b</span>.
+        </p>
+      </div>
+      <p>
+        As the packet slides through the window, <span class="math">P</span> rises and then falls.
+        The whole point of continuity is to explain <em>that</em> rise and fall without inventing
+        probability out of nothing.
+      </p>
+    </div>
+    <aside class="lesson-viz" aria-label="Live density plot for section 2">
+      <div class="btnrow">
+        <button type="button" class="primary guide-play">Pause</button>
+        <button type="button" class="guide-reset">Reset</button>
+      </div>
+      <canvas id="guide-rho" width="720" height="260" aria-label="Live probability density with window"></canvas>
+      <div class="legend">
+        <span><i class="swatch" style="background:#2f5d8c"></i><span class="math">ρ(x)</span></span>
+        <span><i class="swatch" style="background:#0b6e4f66"></i>window <span class="math">[a,b]</span></span>
+      </div>
+      <p class="viz-caption">
+        Same live density plot as above. The green band is the interval whose area under
+        <span class="math">ρ</span> is the probability <span class="math">P</span> in the readout.
+        Pause here to study a fixed moment.
+      </p>
+    </aside>
+  </div>
+
+  <h2>3. What <span class="math">∂ρ/∂t</span> means</h2>
+  <div class="lesson-split">
+    <div class="lesson-copy">
+      <p>
+        The symbol <span class="math">∂ρ/∂t</span> is the rate at which the density at a fixed
+        location is changing. Hold your finger on one value of <span class="math">x</span> and
+        ask: is probability accumulating there, or draining away?
+      </p>
+      <ul>
+        <li><span class="math">∂ρ/∂t &gt; 0</span>: density at that point is increasing (filling).</li>
+        <li><span class="math">∂ρ/∂t &lt; 0</span>: density at that point is decreasing (emptying).</li>
+        <li><span class="math">∂ρ/∂t = 0</span>: density there is momentarily steady.</li>
+      </ul>
+      <p>
+        Units: probability per unit length, per unit time. In the local-check plot, the solid blue
+        curve is this quantity as a function of <span class="math">x</span>.
+      </p>
+      <p>
+        For the whole window we integrate:
+      </p>
+      <p style="text-align:center;">
+        <span class="math">
+          ∫<sub>a</sub><sup>b</sup> (∂ρ/∂t) dx = d/dt ∫<sub>a</sub><sup>b</sup> ρ dx = dP/dt.
+        </span>
+      </p>
+      <p>
+        So the first big green-bordered number in “Balance for the window” is literally
+        “how fast is the total probability inside <span class="math">[a,b]</span> changing?”
+      </p>
+      <div class="example">
+        <h4>From the simulation now</h4>
+        <p>
+          <span class="math">∫<sub>a</sub><sup>b</sup> (∂ρ/∂t) dx =</span>
+          <span class="num" id="ex-intDrho">—</span>.
+          A positive value means probability inside the window is increasing right now
+          (the packet is entering, or still piling into the interval). A negative value means
+          probability is leaving the window.
+        </p>
+      </div>
+    </div>
+    <aside class="lesson-viz" aria-label="Live local-check plot for section 3">
+      <div class="btnrow">
+        <button type="button" class="primary guide-play">Pause</button>
+        <button type="button" class="guide-reset">Reset</button>
+      </div>
+      <canvas id="guide-local" width="720" height="180" aria-label="Live ∂ρ/∂t versus −∂J/∂x"></canvas>
+      <div class="legend">
+        <span><i class="swatch" style="background:#2f5d8c"></i><span class="math">∂ρ/∂t</span> (focus of this section)</span>
+        <span><i class="swatch" style="background:#c45c26"></i><span class="math">−∂J/∂x</span></span>
+      </div>
+      <p class="viz-caption">
+        Same live local-check plot as above. Read the solid blue curve: where it is positive,
+        density is filling; where negative, density is emptying. The readout integrates that
+        blue curve over the window. Pause here to freeze the curves.
+      </p>
+    </aside>
+  </div>
+
+  <h2>4. What the probability current <span class="math">J</span> means</h2>
+  <div class="lesson-split">
+    <div class="lesson-copy">
+      <p>
+        Density alone does not tell you which way probability is moving. Two packets can have the
+        same bump of <span class="math">ρ</span> while one travels right and the other left.
+        The <strong>probability current</strong> <span class="math">J(x,t)</span> supplies the
+        missing flow information.
+      </p>
+      <p>
+        In one dimension, think of <span class="math">J(x,t)</span> as the rate at which
+        probability crosses the point <span class="math">x</span>, from left to right, at time
+        <span class="math">t</span>:
+      </p>
+      <ul>
+        <li><span class="math">J &gt; 0</span>: net flow to the <strong>right</strong>.</li>
+        <li><span class="math">J &lt; 0</span>: net flow to the <strong>left</strong>.</li>
+        <li><span class="math">|J|</span> large: a lot of probability is crossing that point per unit time.</li>
+      </ul>
+      <p>
+        For this simulation (with <span class="math">ℏ = m = 1</span>),
+      </p>
+      <p style="text-align:center;">
+        <span class="math">
+          J = Im(Ψ* ∂Ψ/∂x).
+        </span>
+      </p>
+      <p>
+        You do not need to recompute that formula by hand while using the page — the middle plot
+        already graphs <span class="math">J(x)</span>. The orange arrows at
+        <span class="math">a</span> and <span class="math">b</span> on the density plot are the
+        same quantity evaluated only at the two endpoints.
+      </p>
+      <div class="example">
+        <h4>From the simulation now</h4>
+        <p>
+          <span class="math">J(a) =</span> <span class="num" id="ex-Ja">—</span>,
+          <span class="math">J(b) =</span> <span class="num" id="ex-Jb">—</span>.
+          If <span class="math">J(a)</span> is larger than <span class="math">J(b)</span>, more
+          probability is flowing in at the left end than out at the right end, so the window is
+          gaining probability.
+        </p>
+      </div>
+      <p>
+        A helpful classical analogy: cars on a one-lane road. The number of cars per mile is like
+        <span class="math">ρ</span>. The number of cars per minute passing a mile marker is like
+        <span class="math">J</span>. Continuity is the statement that you cannot change the number
+        of cars in a stretch of road except by cars entering or leaving through the ends.
+      </p>
+    </div>
+    <aside class="lesson-viz" aria-label="Live current plot for section 4">
+      <div class="btnrow">
+        <button type="button" class="primary guide-play">Pause</button>
+        <button type="button" class="guide-reset">Reset</button>
+      </div>
+      <canvas id="guide-j" width="720" height="180" aria-label="Live probability current J(x)"></canvas>
+      <div class="legend">
+        <span><i class="swatch" style="background:#c45c26"></i><span class="math">J(x)</span> (focus of this section)</span>
+        <span><i class="swatch" style="background:#0b6e4f66"></i>window <span class="math">[a,b]</span></span>
+        <span><i class="swatch" style="background:#6b4c9a"></i>probe <span class="math">x<sub>*</sub></span></span>
+      </div>
+      <p class="viz-caption">
+        Same live current plot as above. For a right-moving packet, <span class="math">J</span>
+        is a positive bump under the density. Read <span class="math">J(a)</span> and
+        <span class="math">J(b)</span> from the endpoints of the green window band — those are
+        the live numbers in the readout. Pause here to study a fixed moment.
+      </p>
+    </aside>
+  </div>
+
+  <h2>5. What <span class="math">∂J/∂x</span> means (this is the subtle one)</h2>
+  <p>
+    The current <span class="math">J(x)</span> can be different at neighboring points.
+    The derivative <span class="math">∂J/∂x</span> measures that spatial change:
+  </p>
+  <p style="text-align:center;">
+    <span class="math">
+      ∂J/∂x ≈ [J(x+Δx) − J(x)] / Δx.
+    </span>
+  </p>
+  <p>
+    It answers: <em>as I move a little to the right, does the rightward flow get stronger or
+    weaker?</em>
+  </p>
+  <ul>
+    <li>
+      <span class="math">∂J/∂x &gt; 0</span>: current is increasing as you move right.
+      More probability is leaving the small neighborhood to the right than is entering from
+      the left — a local <strong>divergence</strong> / emptying due to flow.
+    </li>
+    <li>
+      <span class="math">∂J/∂x &lt; 0</span>: current is decreasing as you move right.
+      More probability is entering from the left than leaving to the right — a local
+      <strong>convergence</strong> / pile-up due to flow.
+    </li>
+  </ul>
+  <p>
+    So <span class="math">∂J/∂x</span> is not “the current itself.” It is the
+    <em>imbalance of current across a tiny interval</em>. That imbalance is exactly what
+    forces the density at that spot to change.
+  </p>
+
+  <div class="example">
+    <h4>Numerical example you can read off the probe</h4>
+    <p>
+      Pause when the packet overlaps the purple probe line. Right now the sim reports:
+    </p>
+    <table>
+      <tr>
+        <th>Quantity at <span class="math">x<sub>*</sub></span></th>
+        <th>Live value</th>
+        <th>Meaning</th>
+      </tr>
+      <tr>
+        <td><span class="math">(∂ρ/∂t)|<sub>x<sub>*</sub></sub></span></td>
+        <td><span class="num" id="ex-drho">—</span></td>
+        <td>How fast density is changing at the probe.</td>
+      </tr>
+      <tr>
+        <td><span class="math">(∂J/∂x)|<sub>x<sub>*</sub></sub></span></td>
+        <td><span class="num" id="ex-dj">—</span></td>
+        <td>How fast the current is changing across the probe.</td>
+      </tr>
+      <tr>
+        <td><span class="math">(∂ρ/∂t + ∂J/∂x)|<sub>x<sub>*</sub></sub></span></td>
+        <td><span class="num" id="ex-localSum">—</span></td>
+        <td>Must be ≈ 0 if continuity is true.</td>
+      </tr>
+    </table>
+    <p>
+      Concrete reading: suppose you see
+      <span class="math">(∂ρ/∂t)|<sub>x<sub>*</sub></sub> ≈ −0.12</span> and
+      <span class="math">(∂J/∂x)|<sub>x<sub>*</sub></sub> ≈ +0.12</span>.
+      Then density at the probe is falling at rate <span class="math">0.12</span>, and the
+      current is increasing through that point at the same rate. Probability is not vanishing;
+      it is being carried away because outflow on the right exceeds inflow on the left.
+      Their sum is zero within numerical error.
+    </p>
+  </div>
+
+  <div class="callout">
+    <strong>Tiny-interval story.</strong>
+    Take a short segment <span class="math">[x, x+Δx]</span>.
+    Probability enters at rate <span class="math">J(x)</span> and leaves at rate
+    <span class="math">J(x+Δx)</span>. Net gain per unit time is
+    <span class="math">J(x) − J(x+Δx) ≈ −(∂J/∂x) Δx</span>.
+    Dividing by the length <span class="math">Δx</span> gives the density’s rate of
+    change: <span class="math">∂ρ/∂t ≈ −∂J/∂x</span>. That is the continuity equation.
+  </div>
+
+  <h2>6. Putting it together: <span class="math">∂ρ/∂t + ∂J/∂x = 0</span></h2>
+  <p>
+    Rewrite the same relation as
+  </p>
+  <p style="text-align:center;">
+    <span class="math">∂ρ/∂t = −∂J/∂x.</span>
+  </p>
+  <p>
+    Left side: how density is changing in time at a fixed place.<br />
+    Right side: minus the spatial divergence of the current.<br />
+    Continuity says these are the same number, always.
+  </p>
+  <p>
+    The bottom plot makes this visual: the solid blue curve is
+    <span class="math">∂ρ/∂t</span>; the dashed orange curve is
+    <span class="math">−∂J/∂x</span>. If they lie on top of each other, the equation is holding
+    across the whole line.
+  </p>
+
+  <h2>7. The window version (why the balance panel looks the way it does)</h2>
+  <p>
+    Integrate the local equation from <span class="math">a</span> to <span class="math">b</span>:
+  </p>
+  <p style="text-align:center;">
+    <span class="math">
+      ∫<sub>a</sub><sup>b</sup> (∂ρ/∂t) dx + ∫<sub>a</sub><sup>b</sup> (∂J/∂x) dx = 0.
+    </span>
+  </p>
+  <p>
+    The second integral collapses by the fundamental theorem of calculus:
+  </p>
+  <p style="text-align:center;">
+    <span class="math">
+      ∫<sub>a</sub><sup>b</sup> (∂J/∂x) dx = J(b) − J(a).
+    </span>
+  </p>
+  <p>
+    Therefore
+  </p>
+  <p style="text-align:center;">
+    <span class="math">
+      dP/dt = J(a) − J(b).
+    </span>
+  </p>
+  <p>
+    In words: the only way for probability inside the window to change is net flow through
+    the ends. The balance panel shows both ingredients of the integrated continuity equation
+    and then their sum.
+  </p>
+
+  <div class="example">
+    <h4>From the simulation now (window balance)</h4>
+    <table>
+      <tr>
+        <th>Readout</th>
+        <th>Live value</th>
+        <th>Role</th>
+      </tr>
+      <tr>
+        <td><span class="math">∫<sub>a</sub><sup>b</sup> (∂ρ/∂t) dx</span></td>
+        <td><span class="num" id="ex-intDrho2">—</span></td>
+        <td>Time change of probability in the window.</td>
+      </tr>
+      <tr>
+        <td><span class="math">∫<sub>a</sub><sup>b</sup> (∂J/∂x) dx = J(b)−J(a)</span></td>
+        <td><span class="num" id="ex-intDJ">—</span></td>
+        <td>Net outflow through the ends (positive ⇒ more leaving at <span class="math">b</span> than entering at <span class="math">a</span>).</td>
+      </tr>
+      <tr>
+        <td>sum</td>
+        <td><span class="num" id="ex-intSum">—</span></td>
+        <td>Should stay near machine zero.</td>
+      </tr>
+    </table>
+    <p>
+      Check the signs against the arrows: if the left arrow is longer rightward than the
+      right arrow, then <span class="math">J(a) &gt; J(b)</span>, so
+      <span class="math">J(b)-J(a) &lt; 0</span>, and
+      <span class="math">dP/dt</span> should be positive — the window is filling.
+    </p>
+  </div>
+
+  <h2>8. Dictionary of every control and readout</h2>
+  <table>
+    <tr><th>Control / readout</th><th>What it means</th></tr>
+    <tr>
+      <td>Play / Pause / Reset</td>
+      <td>Start or stop time evolution; Reset returns to <span class="math">t = 0</span> with the packet on the left.</td>
+    </tr>
+    <tr>
+      <td>Group momentum <span class="math">k₀</span></td>
+      <td>Sets how fast the packet’s center moves (group velocity <span class="math">v_g = k₀</span> in these units). Larger <span class="math">k₀</span> ⇒ packet races through the window more quickly and currents are larger.</td>
+    </tr>
+    <tr>
+      <td>Width <span class="math">σ</span></td>
+      <td>Initial spatial width of the Gaussian. Narrower packets have broader momentum spread and disperse faster.</td>
+    </tr>
+    <tr>
+      <td>Speed</td>
+      <td>Only the animation rate (how fast the clock advances on screen). It does not change the physics, just the playback.</td>
+    </tr>
+    <tr>
+      <td>Window <span class="math">a</span>, <span class="math">b</span></td>
+      <td>Endpoints of the interval whose probability <span class="math">P</span> you are tracking. Continuity for that interval uses <span class="math">J(a)</span> and <span class="math">J(b)</span>.</td>
+    </tr>
+    <tr>
+      <td>Probe <span class="math">x<sub>*</sub></span></td>
+      <td>A single point where the page reports the local pair <span class="math">(∂ρ/∂t, ∂J/∂x)</span> and their sum. Move it onto the leading edge, the peak, or the trailing edge to see different signs.</td>
+    </tr>
+    <tr>
+      <td><span class="math">t</span></td>
+      <td>Elapsed simulation time.</td>
+    </tr>
+    <tr>
+      <td><span class="math">P</span></td>
+      <td>Probability currently inside <span class="math">[a,b]</span>.</td>
+    </tr>
+    <tr>
+      <td><span class="math">∫(∂ρ/∂t) dx</span></td>
+      <td>Same as <span class="math">dP/dt</span>: how fast that probability is changing.</td>
+    </tr>
+    <tr>
+      <td><span class="math">∫(∂J/∂x) dx</span></td>
+      <td>Same as <span class="math">J(b)−J(a)</span>: net outflow from the window.</td>
+    </tr>
+    <tr>
+      <td>Window sum</td>
+      <td><span class="math">dP/dt + [J(b)-J(a)]</span>. Continuity demands this be ≈ 0.</td>
+    </tr>
+    <tr>
+      <td>Local sum at <span class="math">x<sub>*</sub></span></td>
+      <td><span class="math">(∂ρ/∂t + ∂J/∂x)|<sub>x<sub>*</sub></sub></span>. Continuity demands this be ≈ 0 at every point.</td>
+    </tr>
+  </table>
+
+  <h2>9. What each plot is teaching</h2>
+  <ol>
+    <li>
+      <strong>Density plot.</strong> Where the particle is likely to be. The green band is
+      the accounting region. Orange arrows show endpoint currents. The purple line is your
+      chosen probe.
+    </li>
+    <li>
+      <strong>Current plot.</strong> Direction and strength of probability flow. For a
+      right-moving packet, <span class="math">J</span> is typically a positive bump under the
+      packet.
+    </li>
+    <li>
+      <strong>Local check plot.</strong> Direct visual of continuity:
+      <span class="math">∂ρ/∂t</span> (blue) should match
+      <span class="math">−∂J/∂x</span> (dashed orange). Where the packet’s leading edge is
+      arriving, density rises and <span class="math">−∂J/∂x</span> is positive; at the trailing
+      edge, density falls.
+    </li>
+  </ol>
+
+  <h2>10. A short study sequence</h2>
+  <ol>
+    <li>Reset. Set <span class="math">a = -1</span>, <span class="math">b = 1</span>, probe at <span class="math">0</span>.</li>
+    <li>Pause near <span class="math">t ≈ 1.5</span>, when the packet overlaps the window.</li>
+    <li>Read <span class="math">∫(∂ρ/∂t) dx</span> and <span class="math">∫(∂J/∂x) dx</span>. Confirm the sum is ~0.</li>
+    <li>Slide <span class="math">x<sub>*</sub></span> across the packet. Watch
+        <span class="math">∂ρ/∂t</span> flip from positive (front) to negative (back), while
+        <span class="math">∂J/∂x</span> flips the opposite way so the local sum stays ~0.</li>
+    <li>Increase <span class="math">k₀</span> and repeat: currents get larger, the same logic remains.</li>
+  </ol>
+
+  <h2>11. Common confusions</h2>
+  <ul>
+    <li>
+      <strong>“Is <span class="math">J</span> the same as velocity?”</strong>
+      No. Velocity would be for a particle trajectory. <span class="math">J</span> is a
+      probability flux. For a plane wave of amplitude <span class="math">A</span> one does
+      have <span class="math">J = v|A|²</span>, which is why people say “speed times density,”
+      but in general <span class="math">J</span> is computed from <span class="math">Ψ</span>
+      as above.
+    </li>
+    <li>
+      <strong>“Why is the window sum using <span class="math">J(b)-J(a)</span> while the
+      verbal slogan says <span class="math">J(a)-J(b)</span>?”</strong>
+      Both appear. Continuity integrated gives
+      <span class="math">dP/dt = J(a)-J(b)</span> (influx minus outflux). Equivalently,
+      <span class="math">dP/dt + [J(b)-J(a)] = 0</span>. The balance panel shows the second
+      form so you literally add the two integrals to see zero.
+    </li>
+    <li>
+      <strong>“The sum is not exactly machine zero.”</strong>
+      The page uses finite differences in <span class="math">x</span> and
+      <span class="math">t</span>. Residuals like <span class="math">10<sup>−4</sup></span> or
+      <span class="math">10<sup>−5</sup></span> are numerical, not physical violations.
+    </li>
+    <li>
+      <strong>“Does this depend on the potential?”</strong>
+      The continuity equation still holds when a real potential is present (as in the step
+      potential lesson). This simulation uses a free packet only to keep the picture clean.
+    </li>
+  </ul>
+
+  <h2>12. The one-sentence takeaway</h2>
+  <p>
+    <span class="math">∂ρ/∂t</span> says how probability density is changing in time;
+    <span class="math">∂J/∂x</span> says how the flow is strengthening or weakening across
+    space; continuity says those two effects are exact opposites, so probability is only
+    rearranged by flow — never created or destroyed.
+  </p>
+</article>
+
+<script>
+(() => {
+  'use strict';
+
+  // Units: ℏ = m = 1. Free Gaussian wave packet with exact closed form.
+  const XMIN = -6, XMAX = 10;
+  const N = 700;
+  const DX = (XMAX - XMIN) / (N - 1);
+  const X0 = -3.5;
+  const DT_SAMPLE = 1e-3;
+
+  const rhoCanvas = document.getElementById('rho');
+  const jCanvas = document.getElementById('jplot');
+  const locCanvas = document.getElementById('local');
+  const guideRhoCanvas = document.getElementById('guide-rho');
+  const guideJCanvas = document.getElementById('guide-j');
+  const guideLocalCanvas = document.getElementById('guide-local');
+  const rhoCtx = rhoCanvas.getContext('2d');
+  const jCtx = jCanvas.getContext('2d');
+  const locCtx = locCanvas.getContext('2d');
+  const guideRhoCtx = guideRhoCanvas ? guideRhoCanvas.getContext('2d') : null;
+  const guideJCtx = guideJCanvas ? guideJCanvas.getContext('2d') : null;
+  const guideLocalCtx = guideLocalCanvas ? guideLocalCanvas.getContext('2d') : null;
+
+  const els = {
+    playBtn: document.getElementById('playBtn'),
+    resetBtn: document.getElementById('resetBtn'),
+    k0: document.getElementById('k0'),
+    sig: document.getElementById('sig'),
+    speed: document.getElementById('speed'),
+    aWin: document.getElementById('aWin'),
+    bWin: document.getElementById('bWin'),
+    xStar: document.getElementById('xStar'),
+    k0Lab: document.getElementById('k0Lab'),
+    sigLab: document.getElementById('sigLab'),
+    speedLab: document.getElementById('speedLab'),
+    aLab: document.getElementById('aLab'),
+    bLab: document.getElementById('bLab'),
+    xStarLab: document.getElementById('xStarLab'),
+    tVal: document.getElementById('tVal'),
+    pVal: document.getElementById('pVal'),
+    intDrhoVal: document.getElementById('intDrhoVal'),
+    intDJVal: document.getElementById('intDJVal'),
+    intSumVal: document.getElementById('intSumVal'),
+    jaVal: document.getElementById('jaVal'),
+    jbVal: document.getElementById('jbVal'),
+    xstarVal: document.getElementById('xstarVal'),
+    rhoStarVal: document.getElementById('rhoStarVal'),
+    drhoStarVal: document.getElementById('drhoStarVal'),
+    djStarVal: document.getElementById('djStarVal'),
+    localSumVal: document.getElementById('localSumVal'),
+    verdict: document.getElementById('verdict'),
+    exT: document.getElementById('ex-t'),
+    exA: document.getElementById('ex-a'),
+    exB: document.getElementById('ex-b'),
+    exXs: document.getElementById('ex-xs'),
+    exP: document.getElementById('ex-P'),
+    exIntDrho: document.getElementById('ex-intDrho'),
+    exIntDrho2: document.getElementById('ex-intDrho2'),
+    exJa: document.getElementById('ex-Ja'),
+    exJb: document.getElementById('ex-Jb'),
+    exDrho: document.getElementById('ex-drho'),
+    exDj: document.getElementById('ex-dj'),
+    exLocalSum: document.getElementById('ex-localSum'),
+    exIntDJ: document.getElementById('ex-intDJ'),
+    exIntSum: document.getElementById('ex-intSum'),
+  };
+
+  let t = 0;
+  let playing = true;
+  let lastTs = null;
+
+  function alpha() {
+    const sig = +els.sig.value;
+    return 1 / (4 * sig * sig);
+  }
+
+  function csqrt(re, im) {
+    const r = Math.hypot(re, im);
+    const zr = Math.sqrt(0.5 * (r + re));
+    let zi = Math.sqrt(0.5 * (r - re));
+    if (im < 0) zi = -zi;
+    return { re: zr, im: zi };
+  }
+  function cdiv(a, b) {
+    const d = b.re * b.re + b.im * b.im;
+    return { re: (a.re * b.re + a.im * b.im) / d, im: (a.im * b.re - a.re * b.im) / d };
+  }
+  function cmul(a, b) {
+    return { re: a.re * b.re - a.im * b.im, im: a.re * b.im + a.im * b.re };
+  }
+  function cexp(re, im) {
+    const e = Math.exp(re);
+    return { re: e * Math.cos(im), im: e * Math.sin(im) };
+  }
+
+  function psi(x, time) {
+    const a = alpha();
+    const k0 = +els.k0.value;
+    const pref0 = Math.pow(2 * a / Math.PI, 0.25);
+    const pref = cdiv({ re: pref0, im: 0 }, csqrt(1, 2 * a * time));
+    const xi = x - X0 - k0 * time;
+    const phaseCenter = k0 * (x - X0 - 0.5 * k0 * time);
+    const frac = cdiv({ re: a * xi * xi, im: 0 }, { re: 1, im: 2 * a * time });
+    const expo = cexp(-frac.re, phaseCenter - frac.im);
+    return cmul(pref, expo);
+  }
+
+  function rhoAt(x, time) {
+    const w = psi(x, time);
+    return w.re * w.re + w.im * w.im;
+  }
+
+  function JAt(x, time) {
+    const h = 1e-4;
+    const wm = psi(x - h, time);
+    const wp = psi(x + h, time);
+    const w = psi(x, time);
+    const dre = (wp.re - wm.re) / (2 * h);
+    const dim = (wp.im - wm.im) / (2 * h);
+    return w.re * dim - w.im * dre;
+  }
+
+  function dRhoDt(x, time) {
+    return (rhoAt(x, time + DT_SAMPLE) - rhoAt(x, time - DT_SAMPLE)) / (2 * DT_SAMPLE);
+  }
+
+  function dJdx(x, time) {
+    const h = 1e-3;
+    return (JAt(x + h, time) - JAt(x - h, time)) / (2 * h);
+  }
+
+  function trapIntegral(f, a, b, n) {
+    const h = (b - a) / n;
+    let s = 0.5 * (f(a) + f(b));
+    for (let i = 1; i < n; i++) s += f(a + i * h);
+    return s * h;
+  }
+
+  function windowBounds() {
+    let a = +els.aWin.value;
+    let b = +els.bWin.value;
+    if (b < a + 0.2) b = a + 0.2;
+    return { a, b };
+  }
+
+  function sampleField(time) {
+    const xs = new Float64Array(N);
+    const rho = new Float64Array(N);
+    const J = new Float64Array(N);
+    const drho = new Float64Array(N);
+    const mdJ = new Float64Array(N);
+    for (let i = 0; i < N; i++) {
+      const x = XMIN + i * DX;
+      xs[i] = x;
+      rho[i] = rhoAt(x, time);
+      J[i] = JAt(x, time);
+      drho[i] = dRhoDt(x, time);
+    }
+    for (let i = 0; i < N; i++) {
+      const jm = i > 0 ? J[i - 1] : J[i];
+      const jp = i < N - 1 ? J[i + 1] : J[i];
+      mdJ[i] = -(jp - jm) / (2 * DX);
+    }
+    return { xs, rho, J, drho, mdJ };
+  }
+
+  function metrics(time) {
+    const { a, b } = windowBounds();
+    const P = trapIntegral((x) => rhoAt(x, time), a, b, 240);
+    // ∫ ∂ρ/∂t dx over [a,b]
+    const intDrho = trapIntegral((x) => dRhoDt(x, time), a, b, 240);
+    // ∫ ∂J/∂x dx = J(b) - J(a)
+    const Ja = JAt(a, time);
+    const Jb = JAt(b, time);
+    const intDJ = Jb - Ja;
+    const intSum = intDrho + intDJ;
+
+    const xStar = +els.xStar.value;
+    const drhoStar = dRhoDt(xStar, time);
+    const djStar = dJdx(xStar, time);
+    const localSum = drhoStar + djStar;
+
+    return {
+      a, b, P, Ja, Jb,
+      intDrho, intDJ, intSum,
+      xStar,
+      rhoStar: rhoAt(xStar, time),
+      drhoStar, djStar, localSum,
+    };
+  }
+
+  function mapX(x, W, pad) {
+    return pad + (x - XMIN) / (XMAX - XMIN) * (W - 2 * pad);
+  }
+
+  function drawAxes(ctx, W, H, pad, y0) {
+    ctx.strokeStyle = '#cfc7b8';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad, y0);
+    ctx.lineTo(W - pad, y0);
+    ctx.stroke();
+    ctx.fillStyle = '#5c574f';
+    ctx.font = '12px "Iowan Old Style", Palatino, serif';
+    ctx.textAlign = 'right';
+    ctx.fillText('x', W - pad + 2, y0 - 4);
+  }
+
+  function drawRho(field, m) {
+    const ctx = rhoCtx;
+    const W = rhoCanvas.width, H = rhoCanvas.height;
+    const pad = 36;
+    ctx.clearRect(0, 0, W, H);
+    const y0 = H - 28;
+    const rmax = Math.max(0.05, ...field.rho) * 1.15;
+    const yScale = (H - 56) / rmax;
+
+    const xa = mapX(m.a, W, pad);
+    const xb = mapX(m.b, W, pad);
+    ctx.fillStyle = 'rgba(11,110,79,0.12)';
+    ctx.fillRect(xa, 18, xb - xa, y0 - 18);
+
+    drawAxes(ctx, W, H, pad, y0);
+
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      const X = mapX(field.xs[i], W, pad);
+      const Y = y0 - field.rho[i] * yScale;
+      if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
+    }
+    ctx.strokeStyle = '#2f5d8c';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // probe line
+    const xs = mapX(m.xStar, W, pad);
+    ctx.strokeStyle = '#6b4c9a';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(xs, 18);
+    ctx.lineTo(xs, y0);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.setLineDash([4, 3]);
+    ctx.strokeStyle = '#0b6e4f';
+    ctx.lineWidth = 1.25;
+    ctx.beginPath();
+    ctx.moveTo(xa, 18); ctx.lineTo(xa, y0);
+    ctx.moveTo(xb, 18); ctx.lineTo(xb, y0);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const jScale = 55;
+    function arrow(xPix, J, y) {
+      const len = Math.max(8, Math.min(70, Math.abs(J) * jScale));
+      const dir = J >= 0 ? 1 : -1;
+      ctx.strokeStyle = '#c45c26';
+      ctx.fillStyle = '#c45c26';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(xPix, y);
+      ctx.lineTo(xPix + dir * len, y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(xPix + dir * len, y);
+      ctx.lineTo(xPix + dir * len - dir * 8, y - 5);
+      ctx.lineTo(xPix + dir * len - dir * 8, y + 5);
+      ctx.closePath();
+      ctx.fill();
+    }
+    arrow(xa, m.Ja, 36);
+    arrow(xb, m.Jb, 36);
+
+    ctx.fillStyle = '#0b6e4f';
+    ctx.font = '12px "Iowan Old Style", Palatino, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('a', xa, y0 + 14);
+    ctx.fillText('b', xb, y0 + 14);
+    ctx.fillStyle = '#6b4c9a';
+    ctx.fillText('x*', xs, y0 + 14);
+    ctx.fillStyle = '#5c574f';
+    ctx.fillText('J(a)', xa, 28);
+    ctx.fillText('J(b)', xb, 28);
+  }
+
+  function drawJ(field, m) {
+    const ctx = jCtx;
+    const W = jCanvas.width, H = jCanvas.height;
+    const pad = 36;
+    ctx.clearRect(0, 0, W, H);
+    const y0 = H / 2;
+    let jmax = 0.05;
+    for (let i = 0; i < N; i++) jmax = Math.max(jmax, Math.abs(field.J[i]));
+    jmax *= 1.2;
+    const yScale = (H / 2 - 24) / jmax;
+
+    const xa = mapX(m.a, W, pad);
+    const xb = mapX(m.b, W, pad);
+    ctx.fillStyle = 'rgba(11,110,79,0.08)';
+    ctx.fillRect(xa, 12, xb - xa, H - 24);
+
+    drawAxes(ctx, W, H, pad, y0);
+
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      const X = mapX(field.xs[i], W, pad);
+      const Y = y0 - field.J[i] * yScale;
+      if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
+    }
+    ctx.strokeStyle = '#c45c26';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    const xs = mapX(m.xStar, W, pad);
+    ctx.strokeStyle = '#6b4c9a';
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(xs, 12);
+    ctx.lineTo(xs, H - 12);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#5c574f';
+    ctx.font = '11px "Iowan Old Style", Palatino, serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('J > 0 →', pad, 18);
+    ctx.fillText('← J < 0', pad, H - 10);
+  }
+
+  function drawLocal(field, m) {
+    const ctx = locCtx;
+    const W = locCanvas.width, H = locCanvas.height;
+    const pad = 36;
+    ctx.clearRect(0, 0, W, H);
+    const y0 = H / 2;
+    let vmax = 0.02;
+    for (let i = 0; i < N; i++) {
+      vmax = Math.max(vmax, Math.abs(field.drho[i]), Math.abs(field.mdJ[i]));
+    }
+    vmax *= 1.25;
+    const yScale = (H / 2 - 24) / vmax;
+
+    drawAxes(ctx, W, H, pad, y0);
+
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      const X = mapX(field.xs[i], W, pad);
+      const Y = y0 - field.drho[i] * yScale;
+      if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
+    }
+    ctx.strokeStyle = '#2f5d8c';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      const X = mapX(field.xs[i], W, pad);
+      const Y = y0 - field.mdJ[i] * yScale;
+      if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
+    }
+    ctx.strokeStyle = '#c45c26';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const xs = mapX(m.xStar, W, pad);
+    ctx.strokeStyle = '#6b4c9a';
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(xs, 12);
+    ctx.lineTo(xs, H - 12);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  function fmt(x, d = 4) {
+    if (!Number.isFinite(x)) return '—';
+    const ax = Math.abs(x);
+    if (ax !== 0 && (ax < 1e-3 || ax >= 1e3)) return x.toExponential(2);
+    return x.toFixed(d);
+  }
+
+  function updateLabs() {
+    els.k0Lab.textContent = (+els.k0.value).toFixed(2);
+    els.sigLab.textContent = (+els.sig.value).toFixed(2);
+    els.speedLab.textContent = (+els.speed.value).toFixed(2) + '×';
+    els.aLab.textContent = (+els.aWin.value).toFixed(2);
+    els.bLab.textContent = (+els.bWin.value).toFixed(2);
+    els.xStarLab.textContent = (+els.xStar.value).toFixed(2);
+  }
+
+  function render() {
+    updateLabs();
+    if (+els.bWin.value < +els.aWin.value + 0.2) {
+      els.bWin.value = (+els.aWin.value + 0.2).toFixed(2);
+    }
+    const field = sampleField(t);
+    const m = metrics(t);
+    drawRho(field, m);
+    drawJ(field, m);
+    drawLocal(field, m);
+    if (guideRhoCtx && guideRhoCanvas) {
+      guideRhoCtx.clearRect(0, 0, guideRhoCanvas.width, guideRhoCanvas.height);
+      guideRhoCtx.drawImage(rhoCanvas, 0, 0);
+    }
+    if (guideJCtx && guideJCanvas) {
+      guideJCtx.clearRect(0, 0, guideJCanvas.width, guideJCanvas.height);
+      guideJCtx.drawImage(jCanvas, 0, 0);
+    }
+    if (guideLocalCtx && guideLocalCanvas) {
+      guideLocalCtx.clearRect(0, 0, guideLocalCanvas.width, guideLocalCanvas.height);
+      guideLocalCtx.drawImage(locCanvas, 0, 0);
+    }
+
+    els.tVal.textContent = fmt(t, 3);
+    els.pVal.textContent = fmt(m.P, 4);
+    els.intDrhoVal.textContent = fmt(m.intDrho, 5);
+    els.intDJVal.textContent = fmt(m.intDJ, 5);
+    els.intSumVal.textContent = fmt(m.intSum, 6);
+    els.jaVal.textContent = fmt(m.Ja, 5);
+    els.jbVal.textContent = fmt(m.Jb, 5);
+
+    els.xstarVal.textContent = fmt(m.xStar, 2);
+    els.rhoStarVal.textContent = fmt(m.rhoStar, 5);
+    els.drhoStarVal.textContent = fmt(m.drhoStar, 5);
+    els.djStarVal.textContent = fmt(m.djStar, 5);
+    els.localSumVal.textContent = fmt(m.localSum, 6);
+
+    // Live numbers embedded in the lesson text below the fold
+    if (els.exT) {
+      els.exT.textContent = fmt(t, 3);
+      els.exA.textContent = fmt(m.a, 2);
+      els.exB.textContent = fmt(m.b, 2);
+      els.exXs.textContent = fmt(m.xStar, 2);
+      els.exP.textContent = fmt(m.P, 4);
+      els.exIntDrho.textContent = fmt(m.intDrho, 5);
+      els.exIntDrho2.textContent = fmt(m.intDrho, 5);
+      els.exJa.textContent = fmt(m.Ja, 5);
+      els.exJb.textContent = fmt(m.Jb, 5);
+      els.exDrho.textContent = fmt(m.drhoStar, 5);
+      els.exDj.textContent = fmt(m.djStar, 5);
+      els.exLocalSum.textContent = fmt(m.localSum, 6);
+      els.exIntDJ.textContent = fmt(m.intDJ, 5);
+      els.exIntSum.textContent = fmt(m.intSum, 6);
+    }
+
+    const okWin = Math.abs(m.intSum) < 5e-3;
+    const okLoc = Math.abs(m.localSum) < 5e-2;
+    els.verdict.innerHTML = (okWin && okLoc)
+      ? '<span class="ok">Continuity holds:</span> window sum ≈ 0 and probe sum ≈ 0.'
+      : 'Sums are larger near sharp features — try pausing or moving the probe onto the packet.';
+  }
+
+  function tick(ts) {
+    if (lastTs == null) lastTs = ts;
+    const dt = Math.min(0.05, (ts - lastTs) / 1000);
+    lastTs = ts;
+    if (playing) {
+      t += dt * (+els.speed.value);
+      if (t > 8) t = 0;
+    }
+    render();
+    requestAnimationFrame(tick);
+  }
+
+  const playButtons = [els.playBtn, ...document.querySelectorAll('.guide-play')];
+  const resetButtons = [els.resetBtn, ...document.querySelectorAll('.guide-reset')];
+
+  function syncPlayLabels() {
+    const label = playing ? 'Pause' : 'Play';
+    playButtons.forEach((btn) => { if (btn) btn.textContent = label; });
+  }
+
+  function togglePlay() {
+    playing = !playing;
+    syncPlayLabels();
+    lastTs = null;
+  }
+
+  function doReset() {
+    t = 0;
+    render();
+  }
+
+  playButtons.forEach((btn) => {
+    if (btn) btn.addEventListener('click', togglePlay);
+  });
+  resetButtons.forEach((btn) => {
+    if (btn) btn.addEventListener('click', doReset);
+  });
+  syncPlayLabels();
+
+  ['k0', 'sig', 'speed', 'aWin', 'bWin', 'xStar'].forEach((id) => {
+    els[id].addEventListener('input', () => render());
+  });
+
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
